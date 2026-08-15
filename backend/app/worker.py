@@ -15,7 +15,7 @@ celery_app = Celery(
     "boilerplate",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks.example"],
+    include=["app.tasks.documents", "app.tasks.example"],
 )
 
 # Report a task as STARTED (not just PENDING) while it runs, so the UI can show

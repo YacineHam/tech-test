@@ -19,3 +19,5 @@ redis==5.2.1
 # The "Process Document" feature needs to read PDFs (page count) and render a
 # page to an image. The rest of the codebase uses PyMuPDF for this. Add the
 # library you choose here and rebuild the image (see CANDIDATE.md).
+
+PyMuPDF==1.25.5
