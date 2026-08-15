@@ -1,6 +1,35 @@
 <template>
   <div>
-    <PageHeader :title="t('documents.title')" :subtitle="t('documents.subtitle')" />
+    <PageHeader :title="t('documents.title')" :subtitle="t('documents.subtitle')">
+      <template #actions>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-plus"
+          :loading="uploading"
+          @click="fileInput.click()"
+        >
+          {{ t('documents.upload') }}
+        </v-btn>
+        <input
+          ref="fileInput"
+          type="file"
+          accept="application/pdf"
+          class="d-none"
+          @change="onFileSelected"
+        />
+      </template>
+    </PageHeader>
+
+    <v-alert
+      v-if="uploadError"
+      type="error"
+      density="compact"
+      closable
+      class="mb-4"
+      @click:close="uploadError = false"
+    >
+      {{ t('documents.uploadError') }}
+    </v-alert>
 
     <DataTable :headers="headers" :items="documents" :loading="loading">
       <template #item.thumbnail_path="{ item }">
@@ -34,7 +63,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import api from '@/api/client'
@@ -47,6 +76,8 @@ const MEDIA_URL = `${api.defaults.baseURL}/media`
 
 const STATUS_COLORS = { processing: 'warning', ready: 'success', failed: 'error' }
 
+const POLL_INTERVAL_MS = 2000
+
 const headers = computed(() => [
   { title: t('documents.headers.thumbnail'), key: 'thumbnail_path', sortable: false },
   { title: t('documents.headers.name'), key: 'name' },
@@ -58,6 +89,11 @@ const headers = computed(() => [
 
 const documents = ref([])
 const loading = ref(false)
+const uploading = ref(false)
+const uploadError = ref(false)
+const fileInput = ref(null)
+
+let pollTimer = null
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString(locale.value)
@@ -71,15 +107,47 @@ function formatSize(bytes) {
   return `${format(bytes / (1024 * 1024))} ${t('documents.units.mb')}`
 }
 
-async function load() {
-  loading.value = true
+async function load({ silent = false } = {}) {
+  if (!silent) loading.value = true
   try {
     const { data } = await api.get('/api/documents')
     documents.value = data
+    syncPolling()
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
+  }
+}
+
+function syncPolling() {
+  const processing = documents.value.some((doc) => doc.status === 'processing')
+  if (processing && !pollTimer) {
+    pollTimer = setInterval(() => load({ silent: true }), POLL_INTERVAL_MS)
+  } else if (!processing && pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+async function onFileSelected(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  uploading.value = true
+  uploadError.value = false
+  try {
+    await api.post('/api/documents', formData)
+    await load()
+  } catch {
+    uploadError.value = true
+  } finally {
+    uploading.value = false
+    event.target.value = ''
   }
 }
 
 onMounted(load)
+onUnmounted(() => clearInterval(pollTimer))
 </script>
