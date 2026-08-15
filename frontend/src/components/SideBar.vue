@@ -35,6 +35,7 @@ const { t } = useI18n()
 // src/router/index.js and a translation key in the locale files.
 const NAV_ITEMS = [
   { labelKey: 'nav.users', icon: 'mdi-account-group', to: '/users' },
+  { labelKey: 'nav.documents', icon: 'mdi-file-document-multiple', to: '/documents' },
   { labelKey: 'nav.settings', icon: 'mdi-cog', to: '/settings' },
 ]
 </script>

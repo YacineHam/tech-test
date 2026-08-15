@@ -4,6 +4,7 @@
   },
   "nav": {
     "users": "Users",
+    "documents": "Documents",
     "settings": "Settings"
   },
   "common": {
@@ -18,6 +19,28 @@
       "email": "Email",
       "role": "Role",
       "created": "Created"
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "PDF files uploaded to the workspace",
+    "headers": {
+      "thumbnail": "Preview",
+      "name": "Name",
+      "pages": "Pages",
+      "size": "Size",
+      "uploaded": "Uploaded",
+      "status": "Status"
+    },
+    "status": {
+      "processing": "Processing",
+      "ready": "Ready",
+      "failed": "Failed"
+    },
+    "units": {
+      "b": "B",
+      "kb": "KB",
+      "mb": "MB"
     }
   },
   "settings": {

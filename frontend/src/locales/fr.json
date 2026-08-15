@@ -4,6 +4,7 @@
   },
   "nav": {
     "users": "Utilisateurs",
+    "documents": "Documents",
     "settings": "Paramètres"
   },
   "common": {
@@ -18,6 +19,28 @@
       "email": "E-mail",
       "role": "Rôle",
       "created": "Créé le"
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Fichiers PDF téléversés dans l'espace de travail",
+    "headers": {
+      "thumbnail": "Aperçu",
+      "name": "Nom",
+      "pages": "Pages",
+      "size": "Taille",
+      "uploaded": "Téléversé le",
+      "status": "Statut"
+    },
+    "status": {
+      "processing": "En cours",
+      "ready": "Prêt",
+      "failed": "Échec"
+    },
+    "units": {
+      "b": "o",
+      "kb": "Ko",
+      "mb": "Mo"
     }
   },
   "settings": {
