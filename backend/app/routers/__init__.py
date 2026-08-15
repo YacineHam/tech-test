@@ -1,3 +1,3 @@
-from app.routers import users
+from app.routers import documents, users
 
-__all__ = ["users"]
+__all__ = ["documents", "users"]

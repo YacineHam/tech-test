@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from app import models  # noqa: F401  (registers models on Base.metadata)
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.routers import users
+from app.routers import documents, users
 from app.seed import seed
 
 
@@ -44,6 +44,7 @@ os.makedirs(settings.media_dir, exist_ok=True)
 app.mount("/media", StaticFiles(directory=settings.media_dir), name="media")
 
 app.include_router(users.router)
+app.include_router(documents.router)
 
 
 @app.get("/api/health", tags=["health"])
