@@ -1,0 +1,29 @@
+{
+  "app": {
+    "subtitle": "Boilerplate"
+  },
+  "nav": {
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "common": {
+    "search": "Search"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "People with access to the workspace",
+    "headers": {
+      "id": "ID",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "created": "Created"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Preferences for this workspace",
+    "language": "Language",
+    "languageHint": "Choose the interface language. Your choice is saved on this device."
+  }
+}

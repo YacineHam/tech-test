@@ -1,0 +1,29 @@
+{
+  "app": {
+    "subtitle": "Boilerplate"
+  },
+  "nav": {
+    "users": "Utilisateurs",
+    "settings": "Paramètres"
+  },
+  "common": {
+    "search": "Rechercher"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "subtitle": "Personnes ayant accès à l'espace de travail",
+    "headers": {
+      "id": "ID",
+      "name": "Nom",
+      "email": "E-mail",
+      "role": "Rôle",
+      "created": "Créé le"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Préférences pour cet espace de travail",
+    "language": "Langue",
+    "languageHint": "Choisissez la langue de l'interface. Votre choix est enregistré sur cet appareil."
+  }
+}

@@ -1,0 +1,88 @@
+# One command brings up the whole stack: `docker compose up --build`.
+#
+#   db       PostgreSQL          (data store)
+#   redis    Redis               (Celery broker + result backend)
+#   api      FastAPI / uvicorn   (HTTP API,  http://localhost:8000)
+#   worker   Celery worker       (runs background tasks)
+#   frontend Vue / Vite          (the UI,    http://localhost:5173)
+#
+# `api` and `worker` are the SAME image with different commands — they share code
+# and the `media` volume, so a file written by the worker is served by the api.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DATABASE_URL: postgresql+psycopg2://app:app@db:5432/app
+      REDIS_URL: redis://redis:6379/0
+      MEDIA_DIR: /app/media
+    volumes:
+      - ./backend:/app          # hot-reload: edits on the host take effect live
+      - media:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: ./backend
+    command: celery -A app.worker.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+psycopg2://app:app@db:5432/app
+      REDIS_URL: redis://redis:6379/0
+      MEDIA_DIR: /app/media
+    volumes:
+      - ./backend:/app
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    environment:
+      # Browser talks to the api on the host port, not the compose hostname.
+      VITE_API_URL: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules       # keep the image's node_modules, don't shadow it
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  media:
