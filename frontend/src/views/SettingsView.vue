@@ -29,6 +29,8 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 
+import PageHeader from '@/components/common/PageHeader.vue'
+
 const { t, locale } = useI18n()
 
 // Languages offered in the switcher. Labels are shown in their own language on
