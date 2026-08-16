@@ -24,6 +24,8 @@
   "documents": {
     "title": "Documents",
     "subtitle": "PDF files uploaded to the workspace",
+    "upload": "Add a document",
+    "uploadError": "Failed to upload document. Please try again.",
     "headers": {
       "thumbnail": "Preview",
       "name": "Name",

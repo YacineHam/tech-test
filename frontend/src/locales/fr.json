@@ -24,6 +24,8 @@
   "documents": {
     "title": "Documents",
     "subtitle": "Fichiers PDF téléversés dans l'espace de travail",
+    "upload": "Ajouter un document",
+    "uploadError": "Échec du téléversement. Veuillez réessayer.",
     "headers": {
       "thumbnail": "Aperçu",
       "name": "Nom",
