@@ -1,13 +1,15 @@
+import asyncio
 import os
 import shutil
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+import redis
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, WebSocket
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.core.config import settings
-from app.core.database import get_db
+from app.core.database import SessionLocal, get_db
 from app.tasks.documents import process_document
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -53,3 +55,33 @@ def upload_document(
     process_document.delay(document.id)
 
     return document
+
+
+@router.websocket("/ws/documents/{doc_id}")
+async def ws_track_document(websocket: WebSocket, doc_id: int) -> None:
+    await websocket.accept()
+    db = SessionLocal()
+
+    try:
+        r = redis.from_url(settings.redis_url)
+        pubsub = r.pubsub()
+        pubsub.subscribe(f"doc:{doc_id}:done")
+
+        def listen_for_signal():
+            for message in pubsub.listen():
+                if message["type"] == "message":
+                    return True
+            return False
+
+        await asyncio.wait_for(asyncio.to_thread(listen_for_signal), timeout=300)
+
+        document = crud.document.get_document(db, doc_id)
+        if document:
+            await websocket.send_json(
+                schemas.DocumentRead.model_validate(document).model_dump(mode='json')
+            )
+    except Exception:
+        pass
+    finally:
+        db.close()
+        pubsub.close()

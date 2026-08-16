@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import api from '@/api/client'
@@ -75,8 +75,6 @@ const { t, locale } = useI18n()
 const MEDIA_URL = `${api.defaults.baseURL}/media`
 
 const STATUS_COLORS = { processing: 'warning', ready: 'success', failed: 'error' }
-
-const POLL_INTERVAL_MS = 2000
 
 const headers = computed(() => [
   { title: t('documents.headers.thumbnail'), key: 'thumbnail_path', sortable: false },
@@ -93,8 +91,6 @@ const uploading = ref(false)
 const uploadError = ref(false)
 const fileInput = ref(null)
 
-let pollTimer = null
-
 function formatDate(value) {
   return new Date(value).toLocaleDateString(locale.value)
 }
@@ -107,25 +103,34 @@ function formatSize(bytes) {
   return `${format(bytes / (1024 * 1024))} ${t('documents.units.mb')}`
 }
 
-async function load({ silent = false } = {}) {
-  if (!silent) loading.value = true
+async function load() {
+  loading.value = true
   try {
     const { data } = await api.get('/api/documents')
     documents.value = data
-    syncPolling()
   } finally {
-    if (!silent) loading.value = false
+    loading.value = false
   }
 }
 
-function syncPolling() {
-  const processing = documents.value.some((doc) => doc.status === 'processing')
-  if (processing && !pollTimer) {
-    pollTimer = setInterval(() => load({ silent: true }), POLL_INTERVAL_MS)
-  } else if (!processing && pollTimer) {
-    clearInterval(pollTimer)
-    pollTimer = null
+function trackDocument(docId) {
+  let baseUrl = api.defaults.baseURL.replace('http', 'ws')
+  if (!baseUrl.endsWith('/api')) {
+    baseUrl += '/api'
   }
+  const wsUrl = `${baseUrl}/documents/ws/documents/${docId}`
+  const ws = new WebSocket(wsUrl)
+
+  ws.onmessage = (event) => {
+    const doc = JSON.parse(event.data)
+    const index = documents.value.findIndex(d => d.id === docId)
+    if (index !== -1) {
+      documents.value[index] = doc
+    }
+    ws.close()
+  }
+
+  ws.onerror = () => ws.close()
 }
 
 async function onFileSelected(event) {
@@ -138,8 +143,9 @@ async function onFileSelected(event) {
   uploading.value = true
   uploadError.value = false
   try {
-    await api.post('/api/documents', formData)
-    await load()
+    const { data: newDoc } = await api.post('/api/documents', formData)
+    documents.value.unshift(newDoc)
+    trackDocument(newDoc.id)  // Open WebSocket to wait for completion
   } catch {
     uploadError.value = true
   } finally {
@@ -149,5 +155,4 @@ async function onFileSelected(event) {
 }
 
 onMounted(load)
-onUnmounted(() => clearInterval(pollTimer))
 </script>

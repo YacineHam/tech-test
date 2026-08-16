@@ -11,9 +11,10 @@ it reads the uploaded PDF from MEDIA_DIR and writes the thumbnail next to it.
 import logging
 import os
 import time
-from pathlib import Path
 
 import pymupdf
+import redis
+from celery.signals import task_postrun
 
 from app import crud
 from app.core.config import settings
@@ -30,7 +31,7 @@ _THUMBNAIL_SCALE = 0.4
 
 @celery_app.task(name="documents.process")
 def process_document(document_id: int) -> None:
-    
+
     db = SessionLocal()
     try:
         document = crud.document.get_document(db, document_id)
@@ -66,3 +67,11 @@ def _render_thumbnail(pdf: pymupdf.Document, file_path: str) -> str:
     matrix = pymupdf.Matrix(_THUMBNAIL_SCALE, _THUMBNAIL_SCALE)
     pdf[0].get_pixmap(matrix=matrix).save(destination)
     return relative_path
+
+
+@task_postrun.connect(sender=process_document)
+def on_document_complete(sender=None, args=None, **kwargs):
+    if args:
+        doc_id = args[0]
+        r = redis.from_url(settings.redis_url)
+        r.publish(f"doc:{doc_id}:done", "1")
