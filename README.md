@@ -60,11 +60,13 @@ frontend/
 docker-compose.yml
 ```
 
-The app ships with two pages: **Users** (a table backed by the API) and
-**Settings** (switches the interface language between English and French). The UI
-is localized with `vue-i18n` — strings live in `src/locales/*.json` and are read
-with `t('...')`, never hard-coded. These pages are intentionally simple: they show
-you the conventions to follow.
+The app includes three pages:
+
+- **Users** — a simple list of people
+- **Settings** — change the interface language (English or French)
+- **Documents** — upload PDF files, and the app automatically shows the page count and a preview
+
+The entire interface is available in **English and French**. Choose your language in Settings.
 
 ## How the pieces talk
 
